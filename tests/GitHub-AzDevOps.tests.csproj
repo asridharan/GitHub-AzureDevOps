@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\AGIC-Github-Connector.csproj" />
+    <ProjectReference Include="..\src\GitHub-AzDevOps.csproj" />
   </ItemGroup>
 
   <ItemGroup>
