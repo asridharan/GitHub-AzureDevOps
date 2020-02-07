@@ -6,7 +6,6 @@ namespace WebHook.GitHub
 {
     public interface IStorage
     {
-        List<User> GetUsers();
         Option<Ticket> GetTicket(GitHubIssue issue);
         Option<Ticket> CreateTicket(GitHubIssue issue, Option<WorkItem> workItem);
         Option<Ticket> UpdateTicket(Ticket ticket, GitHubIssue issue);
