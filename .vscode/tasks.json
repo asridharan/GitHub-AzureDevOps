@@ -17,7 +17,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/src/AGIC-Github-Connector.csproj",
+                "${workspaceFolder}/src/GitHub-AzDevOps.csproj",
                 "-c",
                 "Debug",
                 "--no-restore",
@@ -32,7 +32,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/src/AGIC-Github-Connector.csproj",
+                "${workspaceFolder}/src/GitHub-AzDevOps.csproj",
                 "--no-restore",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
@@ -46,7 +46,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/src/AGIC-Github-Connector.csproj",
+                "${workspaceFolder}/src/GitHub-AzDevOps.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -58,7 +58,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/tests/tests.csproj",
+                "${workspaceFolder}/tests/GitHub-AzDevOps.tests.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -70,7 +70,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/tests/tests.csproj",
+                "${workspaceFolder}/tests/GitHub-AzDevOps.tests.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -83,7 +83,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/tests/tests.csproj",
+                "${workspaceFolder}/tests/GitHub-AzDevOps.tests.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
