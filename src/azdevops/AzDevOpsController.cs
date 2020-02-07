@@ -91,6 +91,27 @@ namespace WebHook.GitHub
                 }
             );
 
+            //Should be done only when there is a parten work item presented.
+            if (ticket.AzDevOpsParentURI != null){
+             patchDocument.Add(
+                new JsonPatchOperation()
+                {
+                    Operation = Operation.Add,
+                    Path = "/relations/-",
+                    Value = new
+                    {
+                        rel = "System.LinkTypes.Hierarchy-Reverse",
+                        url = ticket.AzDevOpsParentURI,
+                        attributes = new
+                        {
+                            comment = "decomposition of work"
+                        }
+                    }
+                }
+            );
+        }
+
+
             return patchDocument;
 
 

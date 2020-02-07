@@ -14,6 +14,7 @@ namespace WebHook.GitHub
     public class AzureStorage : IStorage
     {
         private BlobClient _userBlobClient;
+        private BlobClient _pbBlobClient;
         private BlobServiceClient _blobServiceClient;
         private ILogger _log;
 
@@ -21,11 +22,14 @@ namespace WebHook.GitHub
 
         private List<User> _users;
 
+        private Dictionary<string, string> _productBackLog;
+
         public AzureStorage(ILogger log)
         {
             string connectionString = System.Environment.GetEnvironmentVariable("AzureWebJobsStorage");
             _blobServiceClient = new BlobServiceClient(connectionString);
             _userBlobClient = _blobServiceClient.GetBlobContainerClient("users").GetBlobClient("agic-dev-users.json");
+            _pbBlobClient = _blobServiceClient.GetBlobContainerClient("product-backlog").GetBlobClient("pb.json");
             _log = log;
 
             // Initialize the issues table as well.
@@ -51,12 +55,6 @@ namespace WebHook.GitHub
             _issuesTable = tableClient.GetTableReference("issues");
 
             //Set up the users.
-            _users = GetUsers();
-
-        }
-
-        public List<User> GetUsers()
-        {
             // We need to download the blob to stream and convert it to string in order to de-serialize it as a JSON.
             var userStream = new MemoryStream();
             var downloadInfo = _userBlobClient.DownloadAsync().GetAwaiter().GetResult();
@@ -64,22 +62,40 @@ namespace WebHook.GitHub
             var userText = Encoding.ASCII.GetString(userStream.ToArray());
 
             // Retrieve the Json Object from the blob.
-            return JsonConvert.DeserializeObject<List<User>>(userText);
+            _users = JsonConvert.DeserializeObject<List<User>>(userText);
+
+            //Set up the product backlog mappings.
+            // We need to download the blob to stream and convert it to string in order to de-serialize it as a JSON.
+            var pbStream = new MemoryStream();
+            downloadInfo = _pbBlobClient.DownloadAsync().GetAwaiter().GetResult();
+            downloadInfo.Value.Content.CopyTo(pbStream);
+            var pbText = Encoding.ASCII.GetString(pbStream.ToArray());
+
+            // Retrieve the Json Object from the blob.
+            _productBackLog = JsonConvert.DeserializeObject<Dictionary<string, string>>(pbText);
         }
+
+
 
         public Option<Ticket> GetTicket(GitHubIssue issue)
         {
-            TableOperation retrieveOperation = TableOperation.Retrieve<Ticket>(issue.GetAzDevOpsLabel(), issue.Number.ToString());
             Option<Ticket> ticket = Option.None;
+            Option<string> issueLabel = issue.GetAzDevOpsLabel();
 
-            try
+            if (issueLabel.HasValue)
             {
-                TableResult result = _issuesTable.ExecuteAsync(retrieveOperation).GetAwaiter().GetResult();
-                ticket = result.Result as Ticket;
-            }
-            catch (StorageException ex)
-            {
-                _log.LogInformation($"Unable to retreieve work item map from storage table:{ex.Message}, type:{ex.Data.ToString()}");
+                TableOperation retrieveOperation = TableOperation.Retrieve<Ticket>(issueLabel.Value, issue.Number.ToString());
+
+
+                try
+                {
+                    TableResult result = _issuesTable.ExecuteAsync(retrieveOperation).GetAwaiter().GetResult();
+                    ticket = result.Result as Ticket;
+                }
+                catch (StorageException ex)
+                {
+                    _log.LogInformation($"Unable to retreieve work item map from storage table:{ex.Message}, type:{ex.Data.ToString()}");
+                }
             }
 
             return ticket;
@@ -88,12 +104,12 @@ namespace WebHook.GitHub
         public Option<Ticket> CreateTicket(GitHubIssue issue, Option<WorkItem> workItem)
         {
 
-            return UpdateTicket(new Ticket(issue, workItem, _users), issue);
+            return UpdateTicket(new Ticket(issue, _users, _productBackLog, workItem), issue);
         }
 
         public Option<Ticket> UpdateTicket(Ticket ticket, GitHubIssue issue)
         {
-            ticket.UpdateGitHubIssue(issue, _users);
+            ticket.UpdateGitHubIssue(issue, _users, _productBackLog);
             return updateTicket(ticket);
         }
 
