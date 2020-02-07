@@ -20,6 +20,9 @@ namespace WebHook.GitHub
         public string AzDevOpsURI
         { get; set; }
 
+        public string AzDevOpsParentURI
+        { get; set; }
+
         public int? AzDevOpsWorkItemID
         { get; set; }
 
@@ -54,9 +57,9 @@ namespace WebHook.GitHub
 
         }
 
-        public Ticket(GitHubIssue issue, Option<WorkItem> workItem, List<User> users)
+        public Ticket(GitHubIssue issue, List<User> users, Dictionary<string, string> productBackLog, Option<WorkItem> workItem)
         {
-            this.UpdateGitHubIssue(issue, users);
+            this.UpdateGitHubIssue(issue, users, productBackLog);
             if (workItem.HasValue)
             {
                 this.UpdateAzDevOpsWorkItem(workItem.Value);
@@ -70,7 +73,7 @@ namespace WebHook.GitHub
             AzDevOpsURI = workItem.Url.ToString();
         }
 
-        public void UpdateGitHubIssue(GitHubIssue issue, List<User> users)
+        public void UpdateGitHubIssue(GitHubIssue issue, List<User> users, Dictionary<string, string> productBackLog)
         {
 
             var gitHubAssignee = issue.GetAssignee();
@@ -92,7 +95,16 @@ namespace WebHook.GitHub
 
             Description = issue.Body;
             Title = issue.Title;
-            GitHubIssueLabel = issue.GetAzDevOpsLabel();
+            issue.GetAzDevOpsLabel().Match(
+                None: () => {},
+                Some: value =>
+                {
+                    GitHubIssueLabel = value;
+                    if (productBackLog.ContainsKey(value)){
+                        AzDevOpsParentURI = productBackLog[value];
+                    }
+                }
+            );
             GitHubIssueId = issue.Number;
             GitHubIssueURI = issue.Url;
         }

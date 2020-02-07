@@ -27,7 +27,7 @@ namespace WebHook.GitHub
         {
             // Check with storage if GitHub issue exists.
             var azDevOpsLabel = issue.GetAzDevOpsLabel();
-            if (!(azDevOpsLabel is null))
+            if (azDevOpsLabel.HasValue)
             {
                 var ticket = _storage.GetTicket(issue);
 

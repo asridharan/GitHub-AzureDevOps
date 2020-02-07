@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using Functional.Option;
+using System.Linq;
 
 namespace WebHook.GitHub
 {
@@ -47,17 +48,15 @@ namespace WebHook.GitHub
         [JsonProperty("assignees")]
         public List<GitHubAssignee> Assignees { get; set; }
 
-        public string GetAzDevOpsLabel()
+        public Option<string> GetAzDevOpsLabel()
         {
-            foreach (GitHubLabel label in Labels)
-            {
-                if (label.Name.Contains("AzDevOps"))
-                {
-                    return label.Name;
-                }
+            var label = Labels.FirstOrDefault(azDevOpslabel => azDevOpslabel.Name.Contains("AzDevOps"));
+            
+            if (label == null) {
+                return Option.None;
             }
 
-            return null;
+            return label.Name;
         }
 
         public Option<string> GetAssignee()
